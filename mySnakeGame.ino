@@ -16,6 +16,46 @@ uint8_t uiKeyUp = 7;
 uint8_t uiKeyDown = 6;
 uint8_t uiKeyRight = 4;
 uint8_t uiKeyLeft = 5;
+uint8_t uiKeyMenu = 8;
+
+uint8_t keypressed = 0;//0 none key pressed
+
+class Context;
+
+class State
+{
+public:
+  virtual void cycle(Context* c) = 0;//game logic update
+  virtual void draw(Context* c) = 0;//render
+};
+
+class InGameState: public State
+{
+public:
+  void cycle(Context* c);
+  void draw(Context* c);
+};
+
+class GameSettingState: public State
+{
+public:
+  void cycle(Context* c);
+  void draw(Context* c);
+};
+
+class Context
+{
+private:
+  State *pigs;
+  State *pgss;
+  State *pstate;
+public:
+  Context();
+  void setInGameState();
+  void setGameSettingState();    
+  void cycle();
+  void draw();
+};
 
 enum GameState{
   RUNNING,
@@ -296,24 +336,37 @@ class Controller
     {
       if (digitalRead(uiKeyUp) == LOW)
       {
+        keypressed = uiKeyUp;
         psnake->changedir(KEY_UP);
+        keypressed = 0;
         Serial.print("U");
       }
       else if (digitalRead(uiKeyDown) == LOW)
       {
+        keypressed = uiKeyDown;
         psnake->changedir(KEY_DOWN);
+        keypressed = 0;
         Serial.print("D");
       }
       else if (digitalRead(uiKeyLeft) == LOW)
       {
+        keypressed = uiKeyLeft;
         psnake->changedir(KEY_LEFT);
+        keypressed = 0;
         Serial.print("L");
       }
       else if (digitalRead(uiKeyRight) == LOW)
       {
+        keypressed = uiKeyRight;
         psnake->changedir(KEY_RIGHT);
+        keypressed = 0;
         Serial.print("R");
       }
+      else if (digitalRead(uiKeyMenu) == LOW)
+      {        
+        keypressed = uiKeyMenu;
+        Serial.print("M");
+      }      
       else
       {
       }
@@ -399,6 +452,59 @@ StateBar statebar;
 Game game(&snake, &gamemap, &statebar);
 Controller controller(&snake);
 
+
+void InGameState::cycle(Context* ct)
+{
+    game.Update();
+}
+
+void InGameState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    game.show();
+  } while ( u8g.nextPage() );
+}
+void GameSettingState::cycle(Context* ct)
+{
+  ;
+}
+void GameSettingState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    u8g.drawRFrame(10,10,100,40,5);
+  } while ( u8g.nextPage() );
+}
+
+Context::Context()
+{
+  pigs = new InGameState();
+  pgss = new GameSettingState();
+  pstate = pigs;
+}
+
+void Context::setInGameState()
+{
+  pstate = pigs;
+}
+
+void Context::setGameSettingState()
+{
+  pstate = pgss;
+}
+
+void Context::cycle()
+{
+  pstate->cycle(this);
+}
+void Context::draw()
+{
+  pstate->draw(this);
+}
+
+Context context;
+
 unsigned long tt1;
 unsigned long tt2;
 int intstate = 1;//1:on 0:off
@@ -431,15 +537,13 @@ void setup() {
   pinMode(uiKeyDown, INPUT_PULLUP);           // set pin to input with pullup
   pinMode(uiKeyRight, INPUT_PULLUP);           // set pin to input with pullup
   pinMode(uiKeyLeft, INPUT_PULLUP);           // set pin to input with pullup
+  pinMode(uiKeyMenu, INPUT_PULLUP);           // set pin to input with pullup
   attachInterrupt(digitalPinToInterrupt(2), myisr, FALLING);
   mapgen();
 }
 
 void loop() {
-  game.Update();
-  u8g.firstPage();
-  do {
-    game.show();
-  } while ( u8g.nextPage() );
-  delay(1);
+  context.cycle();
+  context.draw();
 }
+
