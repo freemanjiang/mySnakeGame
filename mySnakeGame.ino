@@ -49,6 +49,12 @@ class StageClearState: public State
     void cycle(Context* c);
     void draw(Context* c);
 };
+class MainMenuState: public State
+{
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
+};
 
 class Context
 {
@@ -56,12 +62,14 @@ class Context
     State *pigs;
     State *pgss;
     State *pscs;
+    State *pmms;
     State *pstate;
   public:
     Context();
     void setInGameState();
     void setGameSettingState();
     void setStageClearState();
+    void setMainMenuState();
     void cycle();
     void draw();
 };
@@ -474,17 +482,42 @@ void StageClearState::draw(Context* ct)
 {
   u8g.firstPage();
   do {
-    u8g.setFont(u8g_font_osb18);
+    u8g.setFont(u8g_font_helvR14);
     u8g.drawStr(0, 40, "Stage Clear");
+  } while ( u8g.nextPage() );
+}
+
+void MainMenuState::cycle(Context* ct)
+{
+  if (keypressed == uiKeyMenu)
+  {
+    mapgen();
+    ct->setInGameState();
+    keypressed = 0;
+    Serial.print("M");
+  }
+}
+void MainMenuState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    u8g.setFont(u8g_font_helvR14);
+    u8g.drawStr(0, 20, "Greedy Snake");
+    u8g.drawHLine(5, 23, 120);
+    u8g.setFont(u8g_font_04b_03r);
+    u8g.drawStr(50, 40, "start");
+    u8g.drawStr(0, 62, "press m key to start");
+
   } while ( u8g.nextPage() );
 }
 
 Context::Context()
 {
+  pmms = new MainMenuState();
   pigs = new InGameState();
   pgss = new GameSettingState();
   pscs = new StageClearState();
-  pstate = pigs;
+  pstate = pmms;
 }
 
 void Context::setInGameState()
@@ -500,6 +533,11 @@ void Context::setGameSettingState()
 void Context::setStageClearState()
 {
   pstate = pscs;
+}
+
+void Context::setMainMenuState()
+{
+  pstate = pmms;
 }
 
 void Context::cycle()
@@ -582,7 +620,6 @@ void setup() {
   pinMode(uiKeyLeft, INPUT_PULLUP);           // set pin to input with pullup
   pinMode(uiKeyMenu, INPUT_PULLUP);           // set pin to input with pullup
   attachInterrupt(digitalPinToInterrupt(2), myisr, FALLING);
-  mapgen();
 }
 
 void loop() {
