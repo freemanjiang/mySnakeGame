@@ -110,7 +110,7 @@ class StateBar
       u8g.setFontPosTop();
 
       u8g.setPrintPos(x + 2, y + 1);
-      u8g.print("stage\n");
+      u8g.print("stage");
       u8g.setPrintPos(x + 2, y + 1 + 10);
       u8g.print(igd.stage);
 
@@ -334,7 +334,7 @@ class Snake
       }   
 #endif
 
-      //检测头的位置发生碰撞了，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
+      //检测头的位置若吃到了水果，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
       int place = get_gamemap_place(x, y);
       if (place & FRUIT == FRUIT)
       {
