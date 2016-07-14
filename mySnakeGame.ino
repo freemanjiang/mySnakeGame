@@ -62,6 +62,7 @@ class GameOverState: public State
     void draw(Context* c);
 };
 class Game;
+class Snake;
 class Context
 {
   private:
@@ -81,6 +82,7 @@ class Context
     void cycle();
     void draw();
     Game* pgame;
+    Snake* psnake;
     int stage;
 };
 
@@ -154,7 +156,7 @@ class BOX
       scr->drawFrame(x, y, GAP, GAP);
     }
   protected:
-    U8GLIB_SSD1306_128X64 *scr;
+    U8GLIB_SSD1306_128X64 *scr = NULL;
     int x = 0;
     int y = 0;
 };
@@ -236,6 +238,10 @@ class Snake
       snakebody.add(pbb);
       state = 0;
       now_face_to = KEY_RIGHT;
+    }
+    ~Snake()
+    {
+      removeSnake();
     }
     //改变方向
     void changedir(int dir)
@@ -338,6 +344,16 @@ class Snake
       return snakebody.size();
     }
   private:
+    void removeSnake()
+    {
+      BodyBox* bb;
+      for (int i = 0; i < snakebody.size(); i++)
+      {
+        bb = snakebody.get(i);
+        delete(bb);
+      }
+      snakebody.clear();
+    }
     int grid2gmindex(int gx, int gy)
     {
       return gy * GRID_WIDTH + gx;
@@ -461,33 +477,31 @@ class Game
     inGameData igd;
 };
 
-Snake snake(&gamemap);
 StateBar statebar;
-//Game game(&snake, &gamemap, &statebar);
 
 void InGameState::cycle(Context* ct)
 {
   if (keypressed == uiKeyUp)
   {
-    snake.changedir(KEY_UP);
+    ct->psnake->changedir(KEY_UP);
     keypressed = 0;
     Serial.print("U");
   }
   else if ( keypressed == uiKeyDown)
   {
-    snake.changedir(KEY_DOWN);
+    ct->psnake->changedir(KEY_DOWN);
     keypressed = 0;
     Serial.print("D");
   }
   else if (keypressed == uiKeyLeft)
   {
-    snake.changedir(KEY_LEFT);
+    ct->psnake->changedir(KEY_LEFT);
     keypressed = 0;
     Serial.print("L");
   }
   else if (keypressed == uiKeyRight)
   {
-    snake.changedir(KEY_RIGHT);
+    ct->psnake->changedir(KEY_RIGHT);
     keypressed = 0;
     Serial.print("R");
   }
@@ -540,7 +554,7 @@ void StageClearState::cycle(Context* ct)
   if (keypressed == uiKeyMenu)
   {
     ct->stage++;
-    ct->pgame = new Game(&snake, &gamemap, &statebar, ct->stage);
+    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     keypressed = 0;
     ct->setInGameState();
   }
@@ -560,7 +574,8 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->pgame = new Game(&snake, &gamemap, &statebar, ct->stage);
+    ct->psnake = new Snake(&gamemap);               
+    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
 
     keypressed = 0;
@@ -583,15 +598,32 @@ void MainMenuState::draw(Context* ct)
 
 void GameOverState::cycle(Context* ct)
 {
-  
+  if (ct->pgame != NULL)
+  {
+    delete(ct->pgame);
+    ct->pgame = NULL;
+  }  
+  if(ct->psnake != NULL)
+  {
+    delete(ct->psnake);
+    ct->psnake = NULL;
+  }
+  if (keypressed == uiKeyMenu)
+  {
+    ct->stage = 1;
+    ct->psnake = new Snake(&gamemap);
+    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
+    keypressed = 0;
+    ct->setInGameState();
+  }  
 }
 void GameOverState::draw(Context* ct)
 {
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(5, 40, "Game Over");    
-    u8g.setFont(u8g_font_04b_03r);    
+    u8g.drawStr(5, 40, "Game Over");
+    u8g.setFont(u8g_font_04b_03r);
     u8g.drawStr(0, 62, "press m key to restart");
   } while ( u8g.nextPage() );
 }
@@ -604,6 +636,7 @@ Context::Context()
   pGameOverState = new GameOverState();
   pCurrentState = pMainMenuState;
   pgame = NULL;
+  psnake = NULL;
   stage = 1;
 }
 
