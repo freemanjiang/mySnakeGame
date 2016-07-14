@@ -191,6 +191,10 @@ class BodyBox: public BOX
         2 石块（撞上后会game over）
         ...后续再添加
 */
+#define FRUIT 0x01
+#define SNAKE_BODY 0x02
+#define STONE_BLOCK 0x04
+
 typedef int GameMap[GRID_WIDTH * GRID_HEIGTH];
 /*.................0.............................1.............................2......... */
 /*.................0..1..2..3..4..5..6..7..8..9..0..1..2..3..4..5..6..7..8..9..0..1..2..3 */
@@ -281,7 +285,9 @@ class Snake
       {
         tempbb = snakebody.get(i);
         tempbb->get(tempgx, tempgy); //保存挪之前的bodybox坐标
+        clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
         tempbb->set(tempdestgx, tempdestgy); //挪当前bodybox
+        set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
         //保存下一个bodybox的目标位置坐标到tempdestgx，tempdestgy
         tempdestgx = tempgx;
         tempdestgy = tempgy;
@@ -292,13 +298,21 @@ class Snake
       {
         BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
         snakebody.add(pnewbb); //尾部坐标为tempdestgx，tempdestgx
+        set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
         state = 0;
       }
       //检测头的位置发生碰撞了，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
-      if (isCollide(x, y) == 1)
-      { //collide with something
+      int place = get_gamemap_place(x, y);
+      if (place & FRUIT == FRUIT)
+      {
+        //collide with fruit
         state = 1;
-        set_gamemap(x, y, 0); //0表示清除（被吃掉的东西）
+        place &= ~FRUIT;
+        set_gamemap_place(x, y, place); //0表示清除（被吃掉的东西）
+      }
+      if (isCollide(x, y) == 1)
+      {
+
       }
     }
     //show the snake
@@ -320,13 +334,36 @@ class Snake
     {
       return gy * GRID_WIDTH + gx;
     }
-    int isCollide(int gx, int gy)
+    int get_gamemap_place(int gx, int gy)
     {
       return (*pgm)[grid2gmindex(gx, gy)];
     }
-    void set_gamemap(int gx, int gy, int value)
+    int isCollide(int gx, int gy)
+    {
+      if (get_gamemap_place(gx, gy) & (SNAKE_BODY | STONE_BLOCK) == 0)
+      { //未撞上蛇身体或石块
+        return 0;
+      }
+      else
+      {
+        return 1;
+      }
+    }
+    void set_gamemap_place(int gx, int gy, int value)
     {
       (*pgm)[grid2gmindex(gx, gy)] = value;
+    }
+    void set_snake_body_in_gamemap_place(int gx, int gy)
+    {
+      int place = get_gamemap_place(gx, gy);
+      place |= SNAKE_BODY;
+      set_gamemap_place(gx, gy, place);
+    }
+    void clear_snake_body_in_gamemap_place(int gx, int gy)
+    {
+      int place = get_gamemap_place(gx, gy);
+      place &= ~SNAKE_BODY;
+      set_gamemap_place(gx, gy, place);
     }
 
     int x;//头的位置
@@ -343,12 +380,12 @@ class Snake
 };
 
 
-int isAllZero(GameMap &gm)
+int isNoFruitInMap(GameMap &gm)
 {
   int ret = 1; //true
   for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
-    if (gm[i] != 0)
+    if ((gm[i]&FRUIT) != 0)
     {
       ret = 0;//false
       break;
@@ -381,7 +418,7 @@ class Game
         psnake->move();
         igd.snakelen = psnake->getSnakeBodyLen();
       }
-      if (isAllZero(gamemap))
+      if (isNoFruitInMap(gamemap))
       {
         ct->setStageClearState();
       }
