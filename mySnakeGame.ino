@@ -43,31 +43,34 @@ class GameSettingState: public State
     void draw(Context* c);
 };
 
+class StageClearState: public State
+{
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
+};
+
 class Context
 {
   private:
     State *pigs;
     State *pgss;
+    State *pscs;
     State *pstate;
   public:
     Context();
     void setInGameState();
     void setGameSettingState();
+    void setStageClearState();
     void cycle();
     void draw();
 };
 
-enum GameState {
-  RUNNING,
-  STAGE_CLEAR
-};
-
-class gameStateData
+class inGameDate
 {
   public:
     int stage = 1;
     int snakelen = 1;
-    int gamestate = RUNNING;
 };
 
 class StateBar
@@ -80,7 +83,7 @@ class StateBar
       width = u8g.getWidth() - x;
       heigth = u8g.getHeight() - y;
     }
-    void show(gameStateData &gsd)
+    void show(inGameDate &igd)
     {
       u8g.drawFrame(x, y, width, heigth);
       u8g.setFont(u8g_font_profont10r);
@@ -89,17 +92,12 @@ class StateBar
       //u8g.drawStr(x+2,y+1,"stage");
       u8g.print("stage");
       u8g.setPrintPos(x + 2 + 1, y + 1 + 9);
-      if (gsd.gamestate == STAGE_CLEAR)
-      {
-        u8g.print("Clear");
-      }
-      else
-      {
-        u8g.print(gsd.stage);
-      }
+
+      u8g.print(igd.stage);
+
       u8g.setPrintPos(x + 2, y + 1 + 30);
       u8g.print("len:");
-      u8g.print(gsd.snakelen);
+      u8g.print(igd.snakelen);
     }
 
   private:
@@ -349,13 +347,12 @@ class Game
       psnake = snake;
       gm = gamemap;
       sb = statebar;
-      gsd.stage = 1;
-      gsd.snakelen = psnake->getSnakeBodyLen();
-      gsd.gamestate = RUNNING;
+      igd.stage = 1;
+      igd.snakelen = psnake->getSnakeBodyLen();
     }
-    void Update(void)
+    void Update(Context* ct)
     {
-      timegap = (220 - 10 * gsd.stage < 100) ? 85 : 240 - 10 * gsd.stage;
+      timegap = (220 - 10 * igd.stage < 100) ? 85 : 240 - 10 * igd.stage;
 
       timenow = millis();
 
@@ -363,11 +360,11 @@ class Game
       {
         timelast = timenow;
         psnake->move();
-        gsd.snakelen = psnake->getSnakeBodyLen();
+        igd.snakelen = psnake->getSnakeBodyLen();
       }
       if (isAllZero(gamemap))
       {
-        gsd.gamestate = STAGE_CLEAR;
+        ct->setStageClearState();
       }
     }
     void show()
@@ -387,7 +384,7 @@ class Game
         }
       }
       //显示状态栏
-      sb->show(gsd);
+      sb->show(igd);
     }
   private:
     unsigned long timenow = 0;
@@ -397,7 +394,7 @@ class Game
     Snake *psnake;
     GameMap *gm;
     StateBar * sb;
-    gameStateData gsd;
+    inGameDate igd;
 };
 
 Snake snake(&gamemap);
@@ -439,7 +436,7 @@ void InGameState::cycle(Context* ct)
   else
   {
   }
-  game.Update();
+  game.Update(ct);
 }
 
 void InGameState::draw(Context* ct)
@@ -469,10 +466,24 @@ void GameSettingState::draw(Context* ct)
   } while ( u8g.nextPage() );
 }
 
+void StageClearState::cycle(Context* ct)
+{
+
+}
+void StageClearState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    u8g.setFont(u8g_font_osb18);
+    u8g.drawStr(0, 40, "Stage Clear");
+  } while ( u8g.nextPage() );
+}
+
 Context::Context()
 {
   pigs = new InGameState();
   pgss = new GameSettingState();
+  pscs = new StageClearState();
   pstate = pigs;
 }
 
@@ -484,6 +495,11 @@ void Context::setInGameState()
 void Context::setGameSettingState()
 {
   pstate = pgss;
+}
+
+void Context::setStageClearState()
+{
+  pstate = pscs;
 }
 
 void Context::cycle()
