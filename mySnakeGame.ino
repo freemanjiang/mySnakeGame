@@ -66,12 +66,12 @@ class Snake;
 class Context
 {
   private:
-    State *pInGameState;
-    State *pGameSettingState;
-    State *pStageClearState;
-    State *pMainMenuState;
-    State *pGameOverState;
-    State *pCurrentState;
+    State* pInGameState;
+    State* pGameSettingState;
+    State* pStageClearState;
+    State* pMainMenuState;
+    State* pGameOverState;
+    State* pCurrentState;
   public:
     Context();
     void setInGameState();
@@ -83,7 +83,7 @@ class Context
     void draw();
     Game* pgame;
     Snake* psnake;
-    int stage;
+    int stage;//关卡号
 };
 
 class inGameData
@@ -296,6 +296,7 @@ class Snake
       }
       tempdestgx = x;
       tempdestgy = y;
+#if 0//算法一
       BodyBox* tempbb;
       for (int i = 0; i < snakebody.size(); i++)
       {
@@ -309,14 +310,30 @@ class Snake
         tempdestgy = tempgy;
       }
       //如果处于吃到状态，理顺身体在末尾加bodybox，长度加1，清除吃到状态
-
       if (state == 1)
       {
         BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
         snakebody.add(pnewbb); //尾部坐标为tempdestgx，tempdestgx
         set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
         state = 0;
+      }      
+#else//算法二
+      //BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
+      snakebody.add(0,new BodyBox(&u8g, tempdestgx, tempdestgy));
+      set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
+      if(state == 0)
+      {//若不是吃到的状态，就对尾部box进行删除
+        BodyBox* pTailBox = snakebody.pop();
+        pTailBox->get(tempgx, tempgy);        
+        clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
+        delete(pTailBox);
       }
+      else
+      {//若是吃到的状态，就跳过这次对尾部box的删除
+        state = 0;
+      }   
+#endif
+
       //检测头的位置发生碰撞了，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
       int place = get_gamemap_place(x, y);
       if (place & FRUIT == FRUIT)
