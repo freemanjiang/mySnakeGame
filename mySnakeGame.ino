@@ -34,7 +34,6 @@ class InGameState: public State
   public:
     void cycle(Context* c);
     void draw(Context* c);
-    void respkey(Context* c);//responce key
 };
 
 class GameSettingState: public State
@@ -326,42 +325,8 @@ class Snake
     GameMap *pgm;
     int state;//0 正常行走，1吃到了
 };
-class Controller
-{
-  public:
-    Controller(Snake *snake)
-    {
-      psnake = snake;
-    }
-    void checkkey()
-    {
-      if (digitalRead(uiKeyUp) == LOW)
-      {
-        keypressed = uiKeyUp;
-      }
-      else if (digitalRead(uiKeyDown) == LOW)
-      {
-        keypressed = uiKeyDown;
-      }
-      else if (digitalRead(uiKeyLeft) == LOW)
-      {
-        keypressed = uiKeyLeft;
-      }
-      else if (digitalRead(uiKeyRight) == LOW)
-      {
-        keypressed = uiKeyRight;
-      }
-      else if (digitalRead(uiKeyMenu) == LOW)
-      {
-        keypressed = uiKeyMenu;
-      }
-      else
-      {
-      }
-    }
-  private:
-    Snake* psnake;
-};
+
+
 int isAllZero(GameMap &gm)
 {
   int ret = 1; //true
@@ -438,24 +403,8 @@ class Game
 Snake snake(&gamemap);
 StateBar statebar;
 Game game(&snake, &gamemap, &statebar);
-Controller controller(&snake);
-
-
 
 void InGameState::cycle(Context* ct)
-{
-  respkey(ct);
-  game.Update();
-}
-
-void InGameState::draw(Context* ct)
-{
-  u8g.firstPage();
-  do {
-    game.show();
-  } while ( u8g.nextPage() );
-}
-void InGameState::respkey(Context* ct)
 {
   if (keypressed == uiKeyUp)
   {
@@ -478,19 +427,29 @@ void InGameState::respkey(Context* ct)
   else if (keypressed == uiKeyRight)
   {
     snake.changedir(KEY_RIGHT);
-    keypressed = 0;      
+    keypressed = 0;
     Serial.print("R");
   }
   else if (keypressed == uiKeyMenu)
-  {    
-    ct->setGameSettingState();  
+  {
+    ct->setGameSettingState();
     keypressed = 0;
     Serial.print("M");
   }
   else
   {
   }
+  game.Update();
 }
+
+void InGameState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    game.show();
+  } while ( u8g.nextPage() );
+}
+
 void GameSettingState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
@@ -505,6 +464,8 @@ void GameSettingState::draw(Context* ct)
   u8g.firstPage();
   do {
     u8g.drawRFrame(10, 10, 100, 40, 5);
+    u8g.setFont(u8g_font_osb18);
+    u8g.drawStr(0, 20, "ABC");
   } while ( u8g.nextPage() );
 }
 
@@ -534,6 +495,33 @@ void Context::draw()
   pstate->draw(this);
 }
 
+void checkkey()
+{
+  if (digitalRead(uiKeyUp) == LOW)
+  {
+    keypressed = uiKeyUp;
+  }
+  else if (digitalRead(uiKeyDown) == LOW)
+  {
+    keypressed = uiKeyDown;
+  }
+  else if (digitalRead(uiKeyLeft) == LOW)
+  {
+    keypressed = uiKeyLeft;
+  }
+  else if (digitalRead(uiKeyRight) == LOW)
+  {
+    keypressed = uiKeyRight;
+  }
+  else if (digitalRead(uiKeyMenu) == LOW)
+  {
+    keypressed = uiKeyMenu;
+  }
+  else
+  {
+  }
+}
+
 Context context;
 
 unsigned long tt1;
@@ -547,7 +535,7 @@ void myisr(void)
   time_isr = millis();
   if (time_isr - last_time_isr > debouncing_time)
   {
-    controller.checkkey();
+    checkkey();
     last_time_isr = time_isr;
   }
 }
