@@ -455,7 +455,13 @@ Controller controller(&snake);
 
 void InGameState::cycle(Context* ct)
 {
-    game.Update();
+  if(keypressed == uiKeyMenu)
+  {    
+    ct->setGameSettingState();
+    keypressed = 0;
+    return;
+  }
+  game.Update();
 }
 
 void InGameState::draw(Context* ct)
@@ -467,7 +473,12 @@ void InGameState::draw(Context* ct)
 }
 void GameSettingState::cycle(Context* ct)
 {
-  ;
+  if(keypressed == uiKeyMenu)
+  {    
+    ct->setInGameState();
+    keypressed = 0;
+    return;
+  }
 }
 void GameSettingState::draw(Context* ct)
 {
@@ -486,7 +497,7 @@ Context::Context()
 
 void Context::setInGameState()
 {
-  pstate = pigs;
+  pstate = pigs;  
 }
 
 void Context::setGameSettingState()
@@ -508,9 +519,17 @@ Context context;
 unsigned long tt1;
 unsigned long tt2;
 int intstate = 1;//1:on 0:off
+unsigned long      time_isr = 0;//for key debouncing
+unsigned long last_time_isr = 0;//for key debouncing
+unsigned long debouncing_time = 150;//150ms 
 void myisr(void)
 {
-  controller.checkkey();
+  time_isr = millis();
+  if(time_isr - last_time_isr > debouncing_time)
+  {
+    controller.checkkey();
+    last_time_isr = time_isr;
+  }
 }
 
 void mapgen(void)
