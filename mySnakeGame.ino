@@ -73,6 +73,7 @@ class Context
     void cycle();
     void draw();
     Game* pgame;
+    int stage;
 };
 
 class inGameData
@@ -182,9 +183,17 @@ class BodyBox: public BOX
       *cy = GAP * yy;
     }
 };
+
+/*
+   GameMap[n]的每一bit代表该地上有对应的物品，bit定义如下：
+   bit  0 可吃的水果
+        1 蛇的身体（撞上自生身体后会game over）
+        2 石块（撞上后会game over）
+        ...后续再添加
+*/
 typedef int GameMap[GRID_WIDTH * GRID_HEIGTH];
-/*0                   			     1                             2                             3 */
-/*0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1 */
+/*.................0.............................1.............................2......... */
+/*.................0..1..2..3..4..5..6..7..8..9..0..1..2..3..4..5..6..7..8..9..0..1..2..3 */
 GameMap gamemap = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*0*/
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*1*/
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
@@ -483,19 +492,22 @@ void StageClearState::cycle(Context* ct)
     delete(ct->pgame);
     ct->pgame = NULL;
   }
-  if(keypressed == uiKeyMenu)
-  {    
-    ct->pgame = new Game(&snake, &gamemap, &statebar, 2);
+  if (keypressed == uiKeyMenu)
+  {
+    ct->stage++;
+    ct->pgame = new Game(&snake, &gamemap, &statebar, ct->stage);
     keypressed = 0;
     ct->setInGameState();
   }
 }
 void StageClearState::draw(Context* ct)
 {
+  char buf[20];
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(0, 40, "Stage Clear");
+    sprintf(buf, "Stage %d Clear", ct->stage);
+    u8g.drawStr(0, 40, buf);
   } while ( u8g.nextPage() );
 }
 
@@ -503,7 +515,7 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->pgame = new Game(&snake, &gamemap, &statebar, 1);
+    ct->pgame = new Game(&snake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
 
     keypressed = 0;
@@ -532,6 +544,7 @@ Context::Context()
   pscs = new StageClearState();
   pstate = pmms;
   pgame = NULL;
+  stage = 1;
 }
 
 void Context::setInGameState()
