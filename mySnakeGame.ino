@@ -74,7 +74,7 @@ class Context
     void draw();
 };
 
-class inGameDate
+class inGameData
 {
   public:
     int stage = 1;
@@ -91,7 +91,7 @@ class StateBar
       width = u8g.getWidth() - x;
       heigth = u8g.getHeight() - y;
     }
-    void show(inGameDate &igd)
+    void show(inGameData &igd)
     {
       u8g.drawFrame(x, y, width, heigth);
       u8g.setFont(u8g_font_profont10r);
@@ -402,7 +402,7 @@ class Game
     Snake *psnake;
     GameMap *gm;
     StateBar * sb;
-    inGameDate igd;
+    inGameData igd;
 };
 
 Snake snake(&gamemap);
@@ -468,9 +468,9 @@ void GameSettingState::draw(Context* ct)
 {
   u8g.firstPage();
   do {
-    u8g.drawRFrame(10, 10, 100, 40, 5);
-    u8g.setFont(u8g_font_osb18);
-    u8g.drawStr(0, 20, "ABC");
+    u8g.drawRFrame(4, 2, 120, 60, 6);
+    u8g.setFont(u8g_font_helvR14);
+    u8g.drawStr(0, 14, "Setting");
   } while ( u8g.nextPage() );
 }
 
@@ -502,7 +502,7 @@ void MainMenuState::draw(Context* ct)
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(0, 20, "Greedy Snake");
+    u8g.drawStr(5, 20, "Greedy Snake");
     u8g.drawHLine(5, 23, 120);
     u8g.setFont(u8g_font_04b_03r);
     u8g.drawStr(50, 40, "start");
