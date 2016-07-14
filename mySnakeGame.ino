@@ -55,21 +55,29 @@ class MainMenuState: public State
     void cycle(Context* c);
     void draw(Context* c);
 };
+class GameOverState: public State
+{
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
+};
 class Game;
 class Context
 {
   private:
-    State *pigs;
-    State *pgss;
-    State *pscs;
-    State *pmms;
-    State *pstate;
+    State *pInGameState;
+    State *pGameSettingState;
+    State *pStageClearState;
+    State *pMainMenuState;
+    State *pGameOverState;
+    State *pCurrentState;
   public:
     Context();
     void setInGameState();
     void setGameSettingState();
     void setStageClearState();
     void setMainMenuState();
+    void setGameOverState();
     void cycle();
     void draw();
     Game* pgame;
@@ -242,7 +250,7 @@ class Snake
       }
       now_face_to = dir;
     }
-    void move()
+    void move(Context* ct)
     {
       //移动身体
       switch (now_face_to)
@@ -277,7 +285,10 @@ class Snake
           break;
       }
       //头位置已经更新
-
+      if (isCollide(x, y) == 1)
+      {
+        ct->setGameOverState();
+      }
       tempdestgx = x;
       tempdestgy = y;
       BodyBox* tempbb;
@@ -310,10 +321,7 @@ class Snake
         place &= ~FRUIT;
         set_gamemap_place(x, y, place); //0表示清除（被吃掉的东西）
       }
-      if (isCollide(x, y) == 1)
-      {
 
-      }
     }
     //show the snake
     void show()
@@ -340,7 +348,7 @@ class Snake
     }
     int isCollide(int gx, int gy)
     {
-      if (get_gamemap_place(gx, gy) & (SNAKE_BODY | STONE_BLOCK) == 0)
+      if ((get_gamemap_place(gx, gy) & (SNAKE_BODY | STONE_BLOCK)) == 0)
       { //未撞上蛇身体或石块
         return 0;
       }
@@ -404,7 +412,7 @@ class Game
       sb = statebar;
       igd.stage = stagenum;
       igd.snakelen = psnake->getSnakeBodyLen();
-      mapgen();
+      mapGen();
     }
     void Update(Context* ct)
     {
@@ -415,7 +423,7 @@ class Game
       if (timenow - timelast > timegap)
       {
         timelast = timenow;
-        psnake->move();
+        psnake->move(ct);
         igd.snakelen = psnake->getSnakeBodyLen();
       }
       if (isNoFruitInMap(gamemap))
@@ -573,44 +581,63 @@ void MainMenuState::draw(Context* ct)
   } while ( u8g.nextPage() );
 }
 
+void GameOverState::cycle(Context* ct)
+{
+  
+}
+void GameOverState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    u8g.setFont(u8g_font_helvR14);
+    u8g.drawStr(5, 40, "Game Over");    
+    u8g.setFont(u8g_font_04b_03r);    
+    u8g.drawStr(0, 62, "press m key to restart");
+  } while ( u8g.nextPage() );
+}
 Context::Context()
 {
-  pmms = new MainMenuState();
-  pigs = new InGameState();
-  pgss = new GameSettingState();
-  pscs = new StageClearState();
-  pstate = pmms;
+  pMainMenuState = new MainMenuState();
+  pInGameState = new InGameState();
+  pGameSettingState = new GameSettingState();
+  pStageClearState = new StageClearState();
+  pGameOverState = new GameOverState();
+  pCurrentState = pMainMenuState;
   pgame = NULL;
   stage = 1;
 }
 
 void Context::setInGameState()
 {
-  pstate = pigs;
+  pCurrentState = pInGameState;
 }
 
 void Context::setGameSettingState()
 {
-  pstate = pgss;
+  pCurrentState = pGameSettingState;
 }
 
 void Context::setStageClearState()
 {
-  pstate = pscs;
+  pCurrentState = pStageClearState;
 }
 
 void Context::setMainMenuState()
 {
-  pstate = pmms;
+  pCurrentState = pMainMenuState;
+}
+void Context::setGameOverState()
+{
+  pCurrentState = pGameOverState;
 }
 
 void Context::cycle()
 {
-  pstate->cycle(this);
+  pCurrentState->cycle(this);
 }
 void Context::draw()
 {
-  pstate->draw(this);
+  pCurrentState->draw(this);
 }
 
 void checkkey()
@@ -658,7 +685,7 @@ void myisr(void)
   }
 }
 
-void mapgen(void)
+void mapGen(void)
 {
   int fluit = 5;//5块水果
   int idx = 0;
