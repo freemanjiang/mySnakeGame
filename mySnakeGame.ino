@@ -98,7 +98,7 @@ class StateBar
       u8g.setFont(u8g_font_profont10r);
       u8g.setFontPosTop();
       u8g.setPrintPos(x + 2, y + 1);
-      //u8g.drawStr(x+2,y+1,"stage");
+      
       u8g.print("stage");
       u8g.setPrintPos(x + 2 + 1, y + 1 + 9);
 
@@ -351,13 +351,14 @@ int isAllZero(GameMap &gm)
 class Game
 {
   public:
-    Game(Snake *snake, GameMap *gamemap, StateBar *statebar)
+    Game(Snake *snake, GameMap *gamemap, StateBar *statebar,int stagenum)
     {
       psnake = snake;
       gm = gamemap;
       sb = statebar;
-      igd.stage = 1;
+      igd.stage = stagenum;
       igd.snakelen = psnake->getSnakeBodyLen();
+      mapgen();
     }
     void Update(Context* ct)
     {
@@ -477,7 +478,8 @@ void GameSettingState::draw(Context* ct)
 
 void StageClearState::cycle(Context* ct)
 {
-
+  delete(ct->pgame);
+  ct->pgame = NULL;
 }
 void StageClearState::draw(Context* ct)
 {
@@ -491,10 +493,8 @@ void StageClearState::draw(Context* ct)
 void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
-  {
-    mapgen();
-
-    ct->pgame = new Game(&snake, &gamemap, &statebar);
+  {    
+    ct->pgame = new Game(&snake, &gamemap, &statebar,1);
     ct->setInGameState();
     
     keypressed = 0;
