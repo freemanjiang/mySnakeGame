@@ -55,7 +55,7 @@ class MainMenuState: public State
     void cycle(Context* c);
     void draw(Context* c);
 };
-
+class Game;
 class Context
 {
   private:
@@ -72,6 +72,7 @@ class Context
     void setMainMenuState();
     void cycle();
     void draw();
+    Game* pgame;
 };
 
 class inGameData
@@ -407,7 +408,7 @@ class Game
 
 Snake snake(&gamemap);
 StateBar statebar;
-Game game(&snake, &gamemap, &statebar);
+//Game game(&snake, &gamemap, &statebar);
 
 void InGameState::cycle(Context* ct)
 {
@@ -444,14 +445,14 @@ void InGameState::cycle(Context* ct)
   else
   {
   }
-  game.Update(ct);
+  ct->pgame->Update(ct);
 }
 
 void InGameState::draw(Context* ct)
 {
   u8g.firstPage();
   do {
-    game.show();
+    ct->pgame->show();
   } while ( u8g.nextPage() );
 }
 
@@ -492,7 +493,10 @@ void MainMenuState::cycle(Context* ct)
   if (keypressed == uiKeyMenu)
   {
     mapgen();
+
+    ct->pgame = new Game(&snake, &gamemap, &statebar);
     ct->setInGameState();
+    
     keypressed = 0;
     Serial.print("M");
   }
@@ -518,6 +522,7 @@ Context::Context()
   pgss = new GameSettingState();
   pscs = new StageClearState();
   pstate = pmms;
+  pgame = NULL;
 }
 
 void Context::setInGameState()
