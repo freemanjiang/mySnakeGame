@@ -24,90 +24,91 @@ class Context;
 
 class State
 {
-public:
-  virtual void cycle(Context* c) = 0;//game logic update
-  virtual void draw(Context* c) = 0;//render
+  public:
+    virtual void cycle(Context* c) = 0;//game logic update
+    virtual void draw(Context* c) = 0;//render
 };
 
 class InGameState: public State
 {
-public:
-  void cycle(Context* c);
-  void draw(Context* c);
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
+    void respkey(Context* c);//responce key
 };
 
 class GameSettingState: public State
 {
-public:
-  void cycle(Context* c);
-  void draw(Context* c);
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
 };
 
 class Context
 {
-private:
-  State *pigs;
-  State *pgss;
-  State *pstate;
-public:
-  Context();
-  void setInGameState();
-  void setGameSettingState();    
-  void cycle();
-  void draw();
+  private:
+    State *pigs;
+    State *pgss;
+    State *pstate;
+  public:
+    Context();
+    void setInGameState();
+    void setGameSettingState();
+    void cycle();
+    void draw();
 };
 
-enum GameState{
+enum GameState {
   RUNNING,
-  STAGE_CLEAR  
+  STAGE_CLEAR
 };
 
 class gameStateData
 {
   public:
-  int stage = 1;
-  int snakelen = 1;
-  int gamestate = RUNNING;
+    int stage = 1;
+    int snakelen = 1;
+    int gamestate = RUNNING;
 };
 
 class StateBar
 {
   public:
-  StateBar()
-  {
-    x = GRID_WIDTH * GAP;
-    y = 0;
-    width = u8g.getWidth() - x;
-    heigth = u8g.getHeight() - y;
-  }
-  void show(gameStateData &gsd)
-  {
-    u8g.drawFrame(x,y,width,heigth);
-    u8g.setFont(u8g_font_profont10r);
-    u8g.setFontPosTop();    
-    u8g.setPrintPos(x+2,y+1);
-    //u8g.drawStr(x+2,y+1,"stage");
-    u8g.print("stage");
-    u8g.setPrintPos(x+2+1,y+1+9);  
-    if(gsd.gamestate == STAGE_CLEAR)
-    {          
-      u8g.print("Clear");      
+    StateBar()
+    {
+      x = GRID_WIDTH * GAP;
+      y = 0;
+      width = u8g.getWidth() - x;
+      heigth = u8g.getHeight() - y;
     }
-    else
-    { 
-      u8g.print(gsd.stage);
+    void show(gameStateData &gsd)
+    {
+      u8g.drawFrame(x, y, width, heigth);
+      u8g.setFont(u8g_font_profont10r);
+      u8g.setFontPosTop();
+      u8g.setPrintPos(x + 2, y + 1);
+      //u8g.drawStr(x+2,y+1,"stage");
+      u8g.print("stage");
+      u8g.setPrintPos(x + 2 + 1, y + 1 + 9);
+      if (gsd.gamestate == STAGE_CLEAR)
+      {
+        u8g.print("Clear");
+      }
+      else
+      {
+        u8g.print(gsd.stage);
+      }
+      u8g.setPrintPos(x + 2, y + 1 + 30);
+      u8g.print("len:");
+      u8g.print(gsd.snakelen);
     }
-    u8g.setPrintPos(x+2,y+1+30);     
-    u8g.print("len:");
-    u8g.print(gsd.snakelen);
-  }
 
   private:
-  int x;
-  int y;
-  int width;
-  int heigth;
-  String strbuf;
+    int x;
+    int y;
+    int width;
+    int heigth;
+    String strbuf;
 };
 class BOX
 {
@@ -176,8 +177,8 @@ class BodyBox: public BOX
     }
 };
 typedef int GameMap[GRID_WIDTH * GRID_HEIGTH];
-				         /*0                   			     1                             2                             3 */
-			           /*0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1 */
+/*0                   			     1                             2                             3 */
+/*0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5  6  7  8  9  0  1 */
 GameMap gamemap = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*0*/
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*1*/
                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
@@ -229,30 +230,30 @@ class Snake
       {
         case KEY_UP:
           y--;
-          if( y < 0)
+          if ( y < 0)
           {
             y = GRID_HEIGTH - 1;
           }
           break;
         case KEY_DOWN:
           y++;
-          if(y > GRID_HEIGTH - 1)
+          if (y > GRID_HEIGTH - 1)
           {
-             y = 0;
+            y = 0;
           }
           break;
         case KEY_LEFT:
           x--;
-          if(x < 0 )
-          { 
-            x = GRID_WIDTH - 1; 
+          if (x < 0 )
+          {
+            x = GRID_WIDTH - 1;
           }
           break;
         case KEY_RIGHT:
           x++;
-          if(x > GRID_WIDTH - 1)
+          if (x > GRID_WIDTH - 1)
           {
-             x = 0;
+            x = 0;
           }
           break;
       }
@@ -337,36 +338,23 @@ class Controller
       if (digitalRead(uiKeyUp) == LOW)
       {
         keypressed = uiKeyUp;
-        psnake->changedir(KEY_UP);
-        keypressed = 0;
-        Serial.print("U");
       }
       else if (digitalRead(uiKeyDown) == LOW)
       {
         keypressed = uiKeyDown;
-        psnake->changedir(KEY_DOWN);
-        keypressed = 0;
-        Serial.print("D");
       }
       else if (digitalRead(uiKeyLeft) == LOW)
       {
         keypressed = uiKeyLeft;
-        psnake->changedir(KEY_LEFT);
-        keypressed = 0;
-        Serial.print("L");
       }
       else if (digitalRead(uiKeyRight) == LOW)
       {
         keypressed = uiKeyRight;
-        psnake->changedir(KEY_RIGHT);
-        keypressed = 0;
-        Serial.print("R");
       }
       else if (digitalRead(uiKeyMenu) == LOW)
-      {        
+      {
         keypressed = uiKeyMenu;
-        Serial.print("M");
-      }      
+      }
       else
       {
       }
@@ -376,10 +364,10 @@ class Controller
 };
 int isAllZero(GameMap &gm)
 {
-  int ret=1;//true
-  for(int i=0; i< GRID_WIDTH * GRID_HEIGTH; i++)
+  int ret = 1; //true
+  for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
-    if(gm[i] !=0)
+    if (gm[i] != 0)
     {
       ret = 0;//false
       break;
@@ -401,7 +389,7 @@ class Game
       gsd.gamestate = RUNNING;
     }
     void Update(void)
-    {      
+    {
       timegap = (220 - 10 * gsd.stage < 100) ? 85 : 240 - 10 * gsd.stage;
 
       timenow = millis();
@@ -411,10 +399,10 @@ class Game
         timelast = timenow;
         psnake->move();
         gsd.snakelen = psnake->getSnakeBodyLen();
-      }      
-      if(isAllZero(gamemap))
+      }
+      if (isAllZero(gamemap))
       {
-        gsd.gamestate = STAGE_CLEAR;        
+        gsd.gamestate = STAGE_CLEAR;
       }
     }
     void show()
@@ -453,14 +441,10 @@ Game game(&snake, &gamemap, &statebar);
 Controller controller(&snake);
 
 
+
 void InGameState::cycle(Context* ct)
 {
-  if(keypressed == uiKeyMenu)
-  {    
-    ct->setGameSettingState();
-    keypressed = 0;
-    return;
-  }
+  respkey(ct);
   game.Update();
 }
 
@@ -471,10 +455,46 @@ void InGameState::draw(Context* ct)
     game.show();
   } while ( u8g.nextPage() );
 }
+void InGameState::respkey(Context* ct)
+{
+  if (keypressed == uiKeyUp)
+  {
+    snake.changedir(KEY_UP);
+    keypressed = 0;
+    Serial.print("U");
+  }
+  else if ( keypressed == uiKeyDown)
+  {
+    snake.changedir(KEY_DOWN);
+    keypressed = 0;
+    Serial.print("D");
+  }
+  else if (keypressed == uiKeyLeft)
+  {
+    snake.changedir(KEY_LEFT);
+    keypressed = 0;
+    Serial.print("L");
+  }
+  else if (keypressed == uiKeyRight)
+  {
+    snake.changedir(KEY_RIGHT);
+    keypressed = 0;      
+    Serial.print("R");
+  }
+  else if (keypressed == uiKeyMenu)
+  {    
+    ct->setGameSettingState();  
+    keypressed = 0;
+    Serial.print("M");
+  }
+  else
+  {
+  }
+}
 void GameSettingState::cycle(Context* ct)
 {
-  if(keypressed == uiKeyMenu)
-  {    
+  if (keypressed == uiKeyMenu)
+  {
     ct->setInGameState();
     keypressed = 0;
     return;
@@ -484,7 +504,7 @@ void GameSettingState::draw(Context* ct)
 {
   u8g.firstPage();
   do {
-    u8g.drawRFrame(10,10,100,40,5);
+    u8g.drawRFrame(10, 10, 100, 40, 5);
   } while ( u8g.nextPage() );
 }
 
@@ -497,7 +517,7 @@ Context::Context()
 
 void Context::setInGameState()
 {
-  pstate = pigs;  
+  pstate = pigs;
 }
 
 void Context::setGameSettingState()
@@ -521,11 +541,11 @@ unsigned long tt2;
 int intstate = 1;//1:on 0:off
 unsigned long      time_isr = 0;//for key debouncing
 unsigned long last_time_isr = 0;//for key debouncing
-unsigned long debouncing_time = 150;//150ms 
+unsigned long debouncing_time = 150;//150ms
 void myisr(void)
 {
   time_isr = millis();
-  if(time_isr - last_time_isr > debouncing_time)
+  if (time_isr - last_time_isr > debouncing_time)
   {
     controller.checkkey();
     last_time_isr = time_isr;
