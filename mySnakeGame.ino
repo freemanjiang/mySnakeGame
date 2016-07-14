@@ -108,14 +108,13 @@ class StateBar
       u8g.drawFrame(x, y, width, heigth);
       u8g.setFont(u8g_font_profont10r);
       u8g.setFontPosTop();
+
       u8g.setPrintPos(x + 2, y + 1);
-
-      u8g.print("stage");
-      u8g.setPrintPos(x + 2 + 1, y + 1 + 9);
-
+      u8g.print("stage\n");
+      u8g.setPrintPos(x + 2, y + 1 + 10);
       u8g.print(igd.stage);
 
-      u8g.setPrintPos(x + 2, y + 1 + 30);
+      u8g.setPrintPos(x + 2, y + 1 + 10 + 15);
       u8g.print("len:");
       u8g.print(igd.snakelen);
     }
@@ -428,11 +427,11 @@ class Game
       sb = statebar;
       igd.stage = stagenum;
       igd.snakelen = psnake->getSnakeBodyLen();
-      mapGen();
+      (stagenum < 10) ? mapGen(stagenum + 4) : mapGen(10);
     }
     void Update(Context* ct)
     {
-      timegap = (220 - 10 * igd.stage < 100) ? 85 : 240 - 10 * igd.stage;
+      (igd.stage < 10) ? (timegap = 240 - 15 * igd.stage) : (timegap = 90);
 
       timenow = millis();
 
@@ -574,7 +573,7 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->psnake = new Snake(&gamemap);               
+    ct->psnake = new Snake(&gamemap);
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
 
@@ -602,8 +601,8 @@ void GameOverState::cycle(Context* ct)
   {
     delete(ct->pgame);
     ct->pgame = NULL;
-  }  
-  if(ct->psnake != NULL)
+  }
+  if (ct->psnake != NULL)
   {
     delete(ct->psnake);
     ct->psnake = NULL;
@@ -615,7 +614,7 @@ void GameOverState::cycle(Context* ct)
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     keypressed = 0;
     ct->setInGameState();
-  }  
+  }
 }
 void GameOverState::draw(Context* ct)
 {
@@ -718,16 +717,16 @@ void myisr(void)
   }
 }
 
-void mapGen(void)
+void mapGen(int stagenum)
 {
-  int fluit = 5;//5块水果
+  int fruit = stagenum;
   int idx = 0;
   for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
     gamemap[i] = 0;
   }
   randomSeed(analogRead(0));
-  for (int i = 0; i < fluit; i++)
+  for (int i = 0; i < fruit; i++)
   {
     do {
       idx = random(0, GRID_WIDTH * GRID_HEIGTH);
