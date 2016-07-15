@@ -12,10 +12,10 @@ U8GLIB_SSD1306_128X64 u8g(13, 11, 10, 9);  // SW SPI Com: SCK = 13, MOSI = 11, C
 #define GRID_WIDTH 24 // 128/4
 #define GRID_HEIGTH 16 //64/4
 
-uint8_t uiKeyUp = 7;
+uint8_t uiKeyUp = 5;
 uint8_t uiKeyDown = 6;
 uint8_t uiKeyRight = 4;
-uint8_t uiKeyLeft = 5;
+uint8_t uiKeyLeft = 7;
 uint8_t uiKeyMenu = 8;
 
 uint8_t keypressed = 0;//0 none key pressed
