@@ -159,7 +159,7 @@ class BOX
     int x = 0;
     int y = 0;
 };
-//BOX box(&u8g);
+
 class BodyBox: public BOX
 {
   public:
@@ -194,7 +194,7 @@ class BodyBox: public BOX
 };
 
 /*
-   GameMap[n]的每一bit代表该地上有对应的物品，bit定义如下：
+   GameMap[n]的每一bit代表该地上有对应的物品，bit定义：
    bit  0 可吃的水果
         1 蛇的身体（撞上自生身体后会game over）
         2 石块（撞上后会game over）
@@ -245,15 +245,14 @@ class Snake
     //改变方向
     void changedir(int dir)
     {
-      if (now_face_to == KEY_DOWN && dir == KEY_UP
-          || now_face_to == KEY_UP && dir == KEY_DOWN
-          || now_face_to == KEY_LEFT && dir == KEY_RIGHT
-          || now_face_to == KEY_RIGHT && dir == KEY_LEFT
+      if (now_face_to == KEY_DOWN && dir != KEY_UP
+          || now_face_to == KEY_UP && dir != KEY_DOWN
+          || now_face_to == KEY_LEFT && dir != KEY_RIGHT
+          || now_face_to == KEY_RIGHT && dir != KEY_LEFT
          )
       {
-        return;
+        now_face_to = dir;
       }
-      now_face_to = dir;
     }
     void move(Context* ct)
     {
@@ -290,8 +289,9 @@ class Snake
           break;
       }
       //头位置已经更新
+      
       if (isCollide(x, y) == 1)
-      {
+      {//发生碰撞
         ct->setGameOverState();
       }
       tempdestgx = x;
@@ -316,22 +316,22 @@ class Snake
         snakebody.add(pnewbb); //尾部坐标为tempdestgx，tempdestgx
         set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
         snakefull = 0;
-      }      
+      }
 #else//算法二
       //BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
-      snakebody.add(0,new BodyBox(&u8g, tempdestgx, tempdestgy));
+      snakebody.add(0, new BodyBox(&u8g, tempdestgx, tempdestgy));
       set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
-      if(snakefull == 0)
-      {//若不是吃到的状态，就对尾部box进行删除
+      if (snakefull == 0)
+      { //若不是吃到的状态，就对尾部box进行删除
         BodyBox* pTailBox = snakebody.pop();
-        pTailBox->get(tempgx, tempgy);        
+        pTailBox->get(tempgx, tempgy);
         clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
         delete(pTailBox);
       }
       else
-      {//若是吃到的状态，就跳过这次对尾部box的删除
+      { //若是吃到的状态，就跳过这次对尾部box的删除
         snakefull = 0;
-      }   
+      }
 #endif
 
       //检测头的位置若吃到了水果，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
@@ -341,7 +341,7 @@ class Snake
         //collide with fruit
         snakefull = 1;
         place &= ~FRUIT;
-        set_gamemap_place(x, y, place); //0表示清除（被吃掉的东西）
+        set_gamemap_place(x, y, place); //在地图place上清除被吃掉的东西
       }
 
     }
@@ -422,12 +422,12 @@ class Snake
 
 int isNoFruitInMap(GameMap &gm)
 {
-  int ret = 1; //true
+  int ret = 1; //true 
   for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
     if ((gm[i]&FRUIT) != 0)
     {
-      ret = 0;//false
+      ret = 0;//false，存在水果
       break;
     }
   }
@@ -718,9 +718,6 @@ void checkkey()
 
 Context context;
 
-unsigned long tt1;
-unsigned long tt2;
-int intstate = 1;//1:on 0:off
 unsigned long      time_isr = 0;//for key debouncing
 unsigned long last_time_isr = 0;//for key debouncing
 unsigned long debouncing_time = 150;//150ms
