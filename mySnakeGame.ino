@@ -590,7 +590,8 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->psnake = new Snake(&gamemap);
+    ct->stage = 1;
+    ct->psnake = new Snake(&gamemap);    
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
 
@@ -626,11 +627,8 @@ void GameOverState::cycle(Context* ct)
   }
   if (keypressed == uiKeyMenu)
   {
-    ct->stage = 1;
-    ct->psnake = new Snake(&gamemap);
-    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     keypressed = 0;
-    ct->setInGameState();
+    ct->setMainMenuState();
   }
 }
 void GameOverState::draw(Context* ct)
@@ -640,7 +638,7 @@ void GameOverState::draw(Context* ct)
     u8g.setFont(u8g_font_helvR14);
     u8g.drawStr(5, 40, "Game Over");
     u8g.setFont(u8g_font_04b_03r);
-    u8g.drawStr(0, 62, "press m key to restart");
+    u8g.drawStr(0, 62, "press m key to return");
   } while ( u8g.nextPage() );
 }
 Context::Context()
