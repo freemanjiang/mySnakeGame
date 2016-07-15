@@ -731,9 +731,9 @@ void myisr(void)
   }
 }
 
-void mapGen(int stagenum)
+void mapGen(int fruitNum)
 {
-  int fruit = stagenum;
+  int fruit = fruitNum;
   int idx = 0;
   for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
