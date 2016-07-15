@@ -455,7 +455,7 @@ class Game
     }
     void Update(Context* ct)
     {
-      (igd.stage < 10) ? (timegap = 240 - 15 * igd.stage) : (timegap = 90);
+      (igd.stage < 10) ? (timegap = 240 - 20 * igd.stage) : (timegap = 40);
 
       timenow = millis();
 
