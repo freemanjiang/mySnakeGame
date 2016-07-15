@@ -42,7 +42,12 @@ class GameSettingState: public State
     void cycle(Context* c);
     void draw(Context* c);
 };
-
+class GameOptionState: public State
+{
+  public:
+    void cycle(Context* c);
+    void draw(Context* c);
+};
 class StageClearState: public State
 {
   public:
@@ -68,6 +73,7 @@ class Context
   private:
     State* pInGameState;
     State* pGameSettingState;
+    State* pGameOptionState;
     State* pStageClearState;
     State* pMainMenuState;
     State* pGameOverState;
@@ -76,6 +82,7 @@ class Context
     Context();
     void setInGameState();
     void setGameSettingState();
+    void setGameOptionState();
     void setStageClearState();
     void setMainMenuState();
     void setGameOverState();
@@ -289,9 +296,9 @@ class Snake
           break;
       }
       //头位置已经更新
-      
+
       if (isCollide(x, y) == 1)
-      {//发生碰撞
+      { //发生碰撞
         ct->setGameOverState();
       }
       tempdestgx = x;
@@ -422,7 +429,7 @@ class Snake
 
 int isNoFruitInMap(GameMap &gm)
 {
-  int ret = 1; //true 
+  int ret = 1; //true
   for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
   {
     if ((gm[i]&FRUIT) != 0)
@@ -500,36 +507,27 @@ void InGameState::cycle(Context* ct)
   if (keypressed == uiKeyUp)
   {
     ct->psnake->changedir(KEY_UP);
-    keypressed = 0;
-    Serial.print("U");
   }
   else if ( keypressed == uiKeyDown)
   {
     ct->psnake->changedir(KEY_DOWN);
-    keypressed = 0;
-    Serial.print("D");
   }
   else if (keypressed == uiKeyLeft)
   {
     ct->psnake->changedir(KEY_LEFT);
-    keypressed = 0;
-    Serial.print("L");
   }
   else if (keypressed == uiKeyRight)
   {
     ct->psnake->changedir(KEY_RIGHT);
-    keypressed = 0;
-    Serial.print("R");
   }
   else if (keypressed == uiKeyMenu)
   {
     ct->setGameSettingState();
-    keypressed = 0;
-    Serial.print("M");
   }
   else
   {
   }
+  keypressed = 0;
   ct->pgame->Update(ct);
 }
 
@@ -546,9 +544,8 @@ void GameSettingState::cycle(Context* ct)
   if (keypressed == uiKeyMenu)
   {
     ct->setInGameState();
-    keypressed = 0;
-    return;
   }
+  keypressed = 0;
 }
 void GameSettingState::draw(Context* ct)
 {
@@ -559,7 +556,42 @@ void GameSettingState::draw(Context* ct)
     u8g.drawStr(0, 14, "Setting");
   } while ( u8g.nextPage() );
 }
+void GameOptionState::cycle(Context* ct)
+{
+  if (keypressed == uiKeyMenu)
+  {
+    ct->setMainMenuState();
+  }
+  else if (keypressed == uiKeyUp)
+  {
+    ct->stage++;
+  }
+  else if (keypressed == uiKeyDown)
+  {
+    if (ct->stage > 1)
+    {
+      ct->stage--;
+    }
+  }
+  else
+  {
 
+  }
+  keypressed = 0;
+}
+void GameOptionState::draw(Context* ct)
+{
+  u8g.firstPage();
+  do {
+    u8g.drawRFrame(4, 14, 120, 48, 6);
+    u8g.setFont(u8g_font_helvR14);
+    u8g.drawStr(0, 14, "Option");
+    u8g.setFont(u8g_font_profont10r);
+    u8g.setPrintPos(10, 32);
+    u8g.print("choose level: ");
+    u8g.print(ct->stage);
+  } while ( u8g.nextPage() );
+}
 void StageClearState::cycle(Context* ct)
 {
   if (ct->pgame != NULL)
@@ -571,9 +603,9 @@ void StageClearState::cycle(Context* ct)
   {
     ct->stage++;
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
-    keypressed = 0;
     ct->setInGameState();
   }
+  keypressed = 0;
 }
 void StageClearState::draw(Context* ct)
 {
@@ -590,14 +622,19 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->stage = 1;
-    ct->psnake = new Snake(&gamemap);    
+    ct->psnake = new Snake(&gamemap);
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
 
-    keypressed = 0;
-    Serial.print("M");
   }
+  else if (keypressed == uiKeyRight)
+  {
+    ct->setGameOptionState();
+  }
+  else
+  {
+  }
+  keypressed = 0;
 }
 void MainMenuState::draw(Context* ct)
 {
@@ -606,10 +643,9 @@ void MainMenuState::draw(Context* ct)
     u8g.setFont(u8g_font_helvR14);
     u8g.drawStr(5, 20, "Greedy Snake");
     u8g.drawHLine(5, 23, 120);
-    u8g.setFont(u8g_font_04b_03r);
-    u8g.drawStr(50, 40, "start");
-    u8g.drawStr(0, 62, "press m key to start");
-
+    u8g.setFont(u8g_font_5x8);
+    u8g.drawStr(35, 50, "[Right] option ");
+    u8g.drawStr(35, 62, "[M] start ");
   } while ( u8g.nextPage() );
 }
 
@@ -627,9 +663,10 @@ void GameOverState::cycle(Context* ct)
   }
   if (keypressed == uiKeyMenu)
   {
-    keypressed = 0;
+    ct->stage = 1;
     ct->setMainMenuState();
   }
+  keypressed = 0;
 }
 void GameOverState::draw(Context* ct)
 {
@@ -646,6 +683,7 @@ Context::Context()
   pMainMenuState = new MainMenuState();
   pInGameState = new InGameState();
   pGameSettingState = new GameSettingState();
+  pGameOptionState = new GameOptionState();
   pStageClearState = new StageClearState();
   pGameOverState = new GameOverState();
   pCurrentState = pMainMenuState;
@@ -663,7 +701,10 @@ void Context::setGameSettingState()
 {
   pCurrentState = pGameSettingState;
 }
-
+void Context::setGameOptionState()
+{
+  pCurrentState = pGameOptionState;
+}
 void Context::setStageClearState()
 {
   pCurrentState = pStageClearState;
