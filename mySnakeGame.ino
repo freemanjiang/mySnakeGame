@@ -170,11 +170,11 @@ class BodyBox
 class GameMap
 {
   public:
-    void set_gamemap_place(int gx, int gy, int value)
+    void set_gamemap_place(int gx, int gy, uint8_t value)
     {
       gamemap[grid2gmindex(gx, gy)] = value;
     }
-    int get_gamemap_place(int gx, int gy)
+    uint8_t get_gamemap_place(int gx, int gy)
     {
       return gamemap[grid2gmindex(gx, gy)];
     }
@@ -236,7 +236,7 @@ class GameMap
     */
     /*0.............................1.............................2......... */
     /*0..1..2..3..4..5..6..7..8..9..0..1..2..3..4..5..6..7..8..9..0..1..2..3 */
-    int gamemap[GRID_WIDTH * GRID_HEIGTH] =
+    uint8_t gamemap[GRID_WIDTH * GRID_HEIGTH] =
     { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*0*/
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*1*/
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
@@ -344,7 +344,7 @@ class Snake
       }
 
       //检测头的位置若吃到了水果，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
-      int place = pgm->get_gamemap_place(x, y);
+      uint8_t place = pgm->get_gamemap_place(x, y);
       if (place & FRUIT == FRUIT)
       {
         //collide with fruit
@@ -393,13 +393,13 @@ class Snake
 
     void set_snake_body_in_gamemap_place(int gx, int gy)
     {
-      int place = pgm->get_gamemap_place(gx, gy);
+      uint8_t place = pgm->get_gamemap_place(gx, gy);
       place |= SNAKE_BODY;
       pgm->set_gamemap_place(gx, gy, place);
     }
     void clear_snake_body_in_gamemap_place(int gx, int gy)
     {
-      int place = pgm->get_gamemap_place(gx, gy);
+      uint8_t place = pgm->get_gamemap_place(gx, gy);
       place &= ~SNAKE_BODY;
       pgm->set_gamemap_place(gx, gy, place);
     }
