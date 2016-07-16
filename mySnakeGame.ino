@@ -1,4 +1,5 @@
 #include <LinkedList.h>
+#include <MemoryFree.h>
 
 #include <U8glib.h>
 
@@ -782,9 +783,15 @@ void setup() {
   pinMode(uiKeyMenu, INPUT_PULLUP);           // set pin to input with pullup
   attachInterrupt(digitalPinToInterrupt(2), myisr, FALLING);
 }
-
+unsigned long lastrefresh_freememory = 0;
 void loop() {
   context.cycle();
   context.draw();
+  if (millis() - lastrefresh_freememory > 500)
+  {
+    Serial.print("freeMemory()=");
+    Serial.println(freeMemory());
+    lastrefresh_freememory = millis();
+  }
 }
 
