@@ -535,10 +535,7 @@ void InGameState::cycle(Context* ct)
 
 void InGameState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    ct->pgame->show();
-  } while ( u8g.nextPage() );
+  ct->pgame->show();
 }
 
 void GameSettingState::cycle(Context* ct)
@@ -551,12 +548,9 @@ void GameSettingState::cycle(Context* ct)
 }
 void GameSettingState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    u8g.drawRFrame(4, 2, 120, 60, 6);
-    u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(0, 14, "Setting");
-  } while ( u8g.nextPage() );
+  u8g.drawRFrame(4, 2, 120, 60, 6);
+  u8g.setFont(u8g_font_helvR14);
+  u8g.drawStr(0, 14, "Setting");
 }
 void GameOptionState::cycle(Context* ct)
 {
@@ -583,16 +577,13 @@ void GameOptionState::cycle(Context* ct)
 }
 void GameOptionState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    u8g.drawRFrame(4, 14, 120, 48, 6);
-    u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(0, 14, "Option");
-    u8g.setFont(u8g_font_profont10r);
-    u8g.setPrintPos(10, 32);
-    u8g.print("choose level: ");
-    u8g.print(ct->stage);
-  } while ( u8g.nextPage() );
+  u8g.drawRFrame(4, 14, 120, 48, 6);
+  u8g.setFont(u8g_font_helvR14);
+  u8g.drawStr(0, 14, "Option");
+  u8g.setFont(u8g_font_profont10r);
+  u8g.setPrintPos(10, 32);
+  u8g.print("choose level: ");
+  u8g.print(ct->stage);
 }
 void StageClearState::cycle(Context* ct)
 {
@@ -611,12 +602,9 @@ void StageClearState::cycle(Context* ct)
 }
 void StageClearState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    u8g.setFont(u8g_font_helvR14);
-    sprintf(buf, "Stage %d Clear", ct->stage);
-    u8g.drawStr(0, 40, buf);
-  } while ( u8g.nextPage() );
+  u8g.setFont(u8g_font_helvR14);
+  sprintf(buf, "Stage %d Clear", ct->stage);
+  u8g.drawStr(0, 40, buf);
 }
 
 void MainMenuState::cycle(Context* ct)
@@ -626,7 +614,6 @@ void MainMenuState::cycle(Context* ct)
     ct->psnake = new Snake(&gamemap);
     ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
     ct->setInGameState();
-
   }
   else if (keypressed == uiKeyRight)
   {
@@ -639,15 +626,12 @@ void MainMenuState::cycle(Context* ct)
 }
 void MainMenuState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(5, 20, "Greedy Snake");
-    u8g.drawHLine(5, 23, 120);
-    u8g.setFont(u8g_font_5x8);
-    u8g.drawStr(35, 50, "[Right] option ");
-    u8g.drawStr(35, 62, "[M] start ");
-  } while ( u8g.nextPage() );
+  u8g.setFont(u8g_font_helvR14);
+  u8g.drawStr(5, 20, "Greedy Snake");
+  u8g.drawHLine(5, 23, 120);
+  u8g.setFont(u8g_font_5x8);
+  u8g.drawStr(35, 50, "[Right] option ");
+  u8g.drawStr(35, 62, "[M] start ");
 }
 
 void GameOverState::cycle(Context* ct)
@@ -671,13 +655,10 @@ void GameOverState::cycle(Context* ct)
 }
 void GameOverState::draw(Context* ct)
 {
-  u8g.firstPage();
-  do {
-    u8g.setFont(u8g_font_helvR14);
-    u8g.drawStr(5, 40, "Game Over");
-    u8g.setFont(u8g_font_04b_03r);
-    u8g.drawStr(0, 62, "press m key to return");
-  } while ( u8g.nextPage() );
+  u8g.setFont(u8g_font_helvR14);
+  u8g.drawStr(5, 40, "Game Over");
+  u8g.setFont(u8g_font_04b_03r);
+  u8g.drawStr(0, 62, "press m key to return");
 }
 Context::Context()
 {
@@ -726,7 +707,10 @@ void Context::cycle()
 }
 void Context::draw()
 {
-  pCurrentState->draw(this);
+  u8g.firstPage();
+  do {
+    pCurrentState->draw(this);
+  } while ( u8g.nextPage() );//u8glib 的固定写法
 }
 
 void checkkey()
