@@ -22,6 +22,7 @@ uint8_t uiKeyMenu = 8;
 uint8_t keypressed = 0;//0 none key pressed
 
 class Context;
+class GameMap;
 
 class State
 {
@@ -93,6 +94,7 @@ class Context
     void draw();
     Game* pgame;
     Snake* psnake;
+    GameMap* pgamemap;
     int stage;//关卡号
 };
 
@@ -161,37 +163,99 @@ class BodyBox
     int gy;//grid position y
 };
 
-/*
-   GameMap[n]的每一bit代表该地上有对应的物品，bit定义：
-   bit  0 可吃的水果
-        1 蛇的身体（撞上自生身体后会game over）
-        2 石块（撞上后会game over）
-        ...后续再添加
-*/
 #define FRUIT 0x01
 #define SNAKE_BODY 0x02
 #define STONE_BLOCK 0x04
 
-typedef int GameMap[GRID_WIDTH * GRID_HEIGTH];
-/*.................0.............................1.............................2......... */
-/*.................0..1..2..3..4..5..6..7..8..9..0..1..2..3..4..5..6..7..8..9..0..1..2..3 */
-GameMap gamemap = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*0*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*1*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,  /*3*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*4*/
-                   0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*5*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*6*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*7*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*8*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*9*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,  /*0*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*1*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
-                   0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*3*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*4*/
-                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*5*/
-                  };
+class GameMap
+{
+  public:
+    void set_gamemap_place(int gx, int gy, int value)
+    {
+      gamemap[grid2gmindex(gx, gy)] = value;
+    }
+    int get_gamemap_place(int gx, int gy)
+    {
+      return gamemap[grid2gmindex(gx, gy)];
+    }
+    int isNoFruitInMap(void)
+    {
+      int ret = 1; //true
+      for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
+      {
+        if ((gamemap[i]&FRUIT) != 0)
+        {
+          ret = 0;//false，存在水果
+          break;
+        }
+      }
+      return ret;
+    }
+    void mapGen(int fruitNum)
+    {
+      int fruit = fruitNum;
+      int idx = 0;
+      for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
+      {
+        gamemap[i] = 0;
+      }
+      randomSeed(analogRead(0));
+      for (int i = 0; i < fruit; i++)
+      {
+        do {
+          idx = random(0, GRID_WIDTH * GRID_HEIGTH);
+        } while ((gamemap[idx] & FRUIT) == FRUIT);
+        gamemap[idx] |= FRUIT;//暂时只放水果
+      }
+    }
+    void show(void)
+    {
+      int gx;
+      int gy;
+      for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
+      {
+        if ((gamemap[i] & FRUIT) == FRUIT) //暂时只显示水果
+        {
+          gx = i % GRID_WIDTH;
+          gy = i / GRID_WIDTH;
+          u8g.drawBox(gx * GAP, gy * GAP, GAP, GAP);
+        }
+      }
+    }
+  private:
+    int grid2gmindex(int gx, int gy)
+    {
+      return gy * GRID_WIDTH + gx;
+    }
+    /*
+      GameMap[n]的每一bit代表该地上有对应的物品，bit定义：
+      bit  0 可吃的水果
+        1 蛇的身体（撞上自生身体后会game over）
+        2 石块（撞上后会game over）
+        ...后续再添加
+    */
+    /*0.............................1.............................2......... */
+    /*0..1..2..3..4..5..6..7..8..9..0..1..2..3..4..5..6..7..8..9..0..1..2..3 */
+    int gamemap[GRID_WIDTH * GRID_HEIGTH] =
+    { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*0*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,  /*1*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,  /*3*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*4*/
+      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*5*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*6*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*7*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*8*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*9*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,  /*0*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*1*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*2*/
+      0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*3*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  /*4*/
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /*5*/
+    };
+};
+
 class Snake
 {
   public:
@@ -280,13 +344,13 @@ class Snake
       }
 
       //检测头的位置若吃到了水果，设置状态成吃到状态，对map作用：清除已经吃掉的东西。
-      int place = get_gamemap_place(x, y);
+      int place = pgm->get_gamemap_place(x, y);
       if (place & FRUIT == FRUIT)
       {
         //collide with fruit
         snakefull = 1;
         place &= ~FRUIT;
-        set_gamemap_place(x, y, place); //在地图place上清除被吃掉的东西
+        pgm->set_gamemap_place(x, y, place); //在地图place上清除被吃掉的东西
       }
 
     }
@@ -315,17 +379,9 @@ class Snake
       }
       snakebody.clear();
     }
-    int grid2gmindex(int gx, int gy)
-    {
-      return gy * GRID_WIDTH + gx;
-    }
-    int get_gamemap_place(int gx, int gy)
-    {
-      return (*pgm)[grid2gmindex(gx, gy)];
-    }
     int isCollide(int gx, int gy)
     {
-      if ((get_gamemap_place(gx, gy) & (SNAKE_BODY | STONE_BLOCK)) == 0)
+      if ((pgm->get_gamemap_place(gx, gy) & (SNAKE_BODY | STONE_BLOCK)) == 0)
       { //未撞上蛇身体或石块
         return 0;
       }
@@ -334,21 +390,18 @@ class Snake
         return 1;
       }
     }
-    void set_gamemap_place(int gx, int gy, int value)
-    {
-      (*pgm)[grid2gmindex(gx, gy)] = value;
-    }
+
     void set_snake_body_in_gamemap_place(int gx, int gy)
     {
-      int place = get_gamemap_place(gx, gy);
+      int place = pgm->get_gamemap_place(gx, gy);
       place |= SNAKE_BODY;
-      set_gamemap_place(gx, gy, place);
+      pgm->set_gamemap_place(gx, gy, place);
     }
     void clear_snake_body_in_gamemap_place(int gx, int gy)
     {
-      int place = get_gamemap_place(gx, gy);
+      int place = pgm->get_gamemap_place(gx, gy);
       place &= ~SNAKE_BODY;
-      set_gamemap_place(gx, gy, place);
+      pgm->set_gamemap_place(gx, gy, place);
     }
 
     void showBodyBox(BodyBox *bb)
@@ -380,19 +433,7 @@ class Snake
 };
 
 
-int isNoFruitInMap(GameMap &gm)
-{
-  int ret = 1; //true
-  for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
-  {
-    if ((gm[i]&FRUIT) != 0)
-    {
-      ret = 0;//false，存在水果
-      break;
-    }
-  }
-  return ret;
-}
+
 
 class Game
 {
@@ -404,7 +445,7 @@ class Game
       sb = statebar;
       igd.stage = stagenum;
       igd.snakelen = psnake->getSnakeBodyLen();
-      (stagenum < 10) ? mapGen(stagenum + 4) : mapGen(10);
+      (stagenum < 10) ? gm->mapGen(stagenum + 4) : gm->mapGen(10);
     }
     void Update(Context* ct)
     {
@@ -418,7 +459,7 @@ class Game
         psnake->move(ct);
         igd.snakelen = psnake->getSnakeBodyLen();
       }
-      if (isNoFruitInMap(gamemap))
+      if (gm->isNoFruitInMap())
       {
         ct->setStageClearState();
       }
@@ -427,18 +468,8 @@ class Game
     {
       //显示蛇
       psnake->show();
-      int gx;
-      int gy;
       //显示地图
-      for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
-      {
-        if (((*gm)[i] & FRUIT) == FRUIT) //暂时只显示水果
-        {
-          gx = i % GRID_WIDTH;
-          gy = i / GRID_WIDTH;
-          u8g.drawBox(gx * GAP, gy * GAP, GAP, GAP);
-        }
-      }
+      gm->show();
       //显示状态栏
       sb->show(igd);
     }
@@ -546,7 +577,7 @@ void StageClearState::cycle(Context* ct)
   if (keypressed == uiKeyMenu)
   {
     ct->stage++;
-    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
+    ct->pgame = new Game(ct->psnake, ct->pgamemap, &statebar, ct->stage);
     ct->setInGameState();
   }
   keypressed = 0;
@@ -562,8 +593,9 @@ void MainMenuState::cycle(Context* ct)
 {
   if (keypressed == uiKeyMenu)
   {
-    ct->psnake = new Snake(&gamemap);
-    ct->pgame = new Game(ct->psnake, &gamemap, &statebar, ct->stage);
+    ct->pgamemap = new GameMap();
+    ct->psnake = new Snake(ct->pgamemap);
+    ct->pgame = new Game(ct->psnake, ct->pgamemap, &statebar, ct->stage);
     ct->setInGameState();
   }
   else if (keypressed == uiKeyRight)
@@ -597,6 +629,11 @@ void GameOverState::cycle(Context* ct)
     delete(ct->psnake);
     ct->psnake = NULL;
   }
+  if (ct->pgamemap != NULL)
+  {
+    delete(ct->pgamemap);
+    ct->pgamemap = NULL;
+  }
   if (keypressed == uiKeyMenu)
   {
     ct->stage = 1;
@@ -622,6 +659,7 @@ Context::Context()
   pCurrentState = pMainMenuState;
   pgame = NULL;
   psnake = NULL;
+  pgamemap = NULL;
   stage = 1;
 }
 
@@ -703,24 +741,6 @@ void myisr(void)
   {
     checkkey();
     last_time_isr = time_isr;
-  }
-}
-
-void mapGen(int fruitNum)
-{
-  int fruit = fruitNum;
-  int idx = 0;
-  for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
-  {
-    gamemap[i] = 0;
-  }
-  randomSeed(analogRead(0));
-  for (int i = 0; i < fruit; i++)
-  {
-    do {
-      idx = random(0, GRID_WIDTH * GRID_HEIGTH);
-    } while ((gamemap[idx] & FRUIT) == FRUIT);
-    gamemap[idx] |= FRUIT;//暂时只放水果
   }
 }
 
