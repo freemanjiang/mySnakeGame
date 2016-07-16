@@ -53,6 +53,8 @@ class StageClearState: public State
   public:
     void cycle(Context* c);
     void draw(Context* c);
+  private:
+    char buf[20];
 };
 class MainMenuState: public State
 {
@@ -609,7 +611,6 @@ void StageClearState::cycle(Context* ct)
 }
 void StageClearState::draw(Context* ct)
 {
-  char buf[20];
   u8g.firstPage();
   do {
     u8g.setFont(u8g_font_helvR14);
