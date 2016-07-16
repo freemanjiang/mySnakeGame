@@ -140,11 +140,10 @@ class StateBar
 class BodyBox
 {
   public:
-    BodyBox(U8GLIB_SSD1306_128X64 *screen, int gridx, int gridy)
+    BodyBox(int gridx, int gridy)
     {
       gx = gridx;
       gy = gridy;
-      scr = screen;      
     };
     void set(int gridx, int gridy)
     {
@@ -156,22 +155,10 @@ class BodyBox
       gridx = gx;
       gridy = gy;
     }
-    void showBodyBox()
-    {
-      grid2screen(gx, gy, &x, &y);
-      scr->drawFrame(x, y, GAP, GAP);
-    }
+
   private:
     int gx;//grid position x
     int gy;//grid position y
-    U8GLIB_SSD1306_128X64 *scr = NULL;
-    int x = 0;
-    int y = 0;    
-    void grid2screen(int xx, int yy, int *cx,  int *cy)
-    {
-      *cx = GAP * xx;
-      *cy = GAP * yy;
-    }
 };
 
 /*
@@ -214,7 +201,7 @@ class Snake
       y = GRID_HEIGTH >> 1;
       pgm = gm;
 
-      BodyBox* pbb = new BodyBox(&u8g, x, y);
+      BodyBox* pbb = new BodyBox(x, y);
       snakebody.add(pbb);
       snakefull = 0;
       now_face_to = KEY_RIGHT;
@@ -293,14 +280,13 @@ class Snake
       //如果处于吃到状态，理顺身体在末尾加bodybox，长度加1，清除吃到状态
       if (snakefull == 1)
       {
-        BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
+        BodyBox* pnewbb = new BodyBox(tempdestgx, tempdestgy);
         snakebody.add(pnewbb); //尾部坐标为tempdestgx，tempdestgx
         set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
         snakefull = 0;
       }
 #else//算法二
-      //BodyBox* pnewbb = new BodyBox(&u8g, tempdestgx, tempdestgy);
-      snakebody.add(0, new BodyBox(&u8g, tempdestgx, tempdestgy));
+      snakebody.add(0, new BodyBox(tempdestgx, tempdestgy));
       set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
       if (snakefull == 0)
       { //若不是吃到的状态，就对尾部box进行删除
@@ -333,7 +319,7 @@ class Snake
       for (int i = 0; i < snakebody.size(); i++)
       {
         bb = snakebody.get(i);
-        bb->showBodyBox();
+        showBodyBox(bb);
       }
     }
     int getSnakeBodyLen(void)
@@ -387,6 +373,21 @@ class Snake
       set_gamemap_place(gx, gy, place);
     }
 
+    void showBodyBox(BodyBox *bb)
+    {
+      int gx;
+      int gy;
+      int sx;
+      int sy;
+      bb->get(gx,gy);
+      grid2screen(gx, gy, &sx, &sy);
+      u8g.drawFrame(sx, sy, GAP, GAP);
+    }
+    void grid2screen(int xx, int yy, int *cx,  int *cy)
+    {
+      *cx = GAP * xx;
+      *cy = GAP * yy;
+    }
     int x;//头的位置
     int y;
 
