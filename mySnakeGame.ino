@@ -481,7 +481,7 @@ class Game
       //显示地图
       for (int i = 0; i < GRID_WIDTH * GRID_HEIGTH; i++)
       {
-        if ((*gm)[i] == 1)
+        if (((*gm)[i] & FRUIT) == FRUIT) //暂时只显示水果
         {
           gx = i % GRID_WIDTH;
           gy = i / GRID_WIDTH;
@@ -768,8 +768,8 @@ void mapGen(int fruitNum)
   {
     do {
       idx = random(0, GRID_WIDTH * GRID_HEIGTH);
-    } while (gamemap[idx] == 1);
-    gamemap[idx] = 1;
+    } while ((gamemap[idx] & FRUIT) == FRUIT);
+    gamemap[idx] |= FRUIT;//暂时只放水果
   }
 }
 
