@@ -267,8 +267,8 @@ class Snake
 
       snakebody.add(0, new BodyBox(tempdestgx, tempdestgy));
       set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
-      if (snakefull == 0)
-      { //若不是吃到的状态，就对尾部box进行删除
+      if (snakefull == 0 || snakebody.size() >= GRID_WIDTH - 1)
+      { //若不是吃到的状态，或蛇身超过某长度，就对尾部box进行删除。（蛇身最大长度限制）
         BodyBox* pTailBox = snakebody.pop();
         pTailBox->get(tempgx, tempgy);
         clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
@@ -357,7 +357,7 @@ class Snake
       int gy;
       int sx;
       int sy;
-      bb->get(gx,gy);
+      bb->get(gx, gy);
       grid2screen(gx, gy, &sx, &sy);
       u8g.drawFrame(sx, sy, GAP, GAP);
     }
