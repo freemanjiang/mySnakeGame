@@ -136,47 +136,15 @@ class StateBar
     int heigth;
     String strbuf;
 };
-class BOX
-{
-  public:
-    BOX(U8GLIB_SSD1306_128X64 *screen)
-    {
-      scr = screen;
-    }
-    void mov(int dir)
-    {
-      switch (dir)
-      {
-        case KEY_UP:
-          y <= 0 ? y = 63 : y -= GAP;
-          break;
-        case KEY_DOWN:
-          y >= 64 ? y = 0 : y += GAP;
-          break;
-        case KEY_LEFT:
-          x <= 0 ? x = 127 : x -= GAP;
-          break;
-        case KEY_RIGHT:
-          x >= 128 ? x = 0 : x += GAP;
-      }
-    }
-    void show(void)
-    {
-      scr->drawFrame(x, y, GAP, GAP);
-    }
-  protected:
-    U8GLIB_SSD1306_128X64 *scr = NULL;
-    int x = 0;
-    int y = 0;
-};
 
-class BodyBox: public BOX
+class BodyBox
 {
   public:
-    BodyBox(U8GLIB_SSD1306_128X64 *screen, int gridx, int gridy): BOX(screen)
+    BodyBox(U8GLIB_SSD1306_128X64 *screen, int gridx, int gridy)
     {
       gx = gridx;
       gy = gridy;
+      scr = screen;      
     };
     void set(int gridx, int gridy)
     {
@@ -191,11 +159,14 @@ class BodyBox: public BOX
     void showBodyBox()
     {
       grid2screen(gx, gy, &x, &y);
-      show();
+      scr->drawFrame(x, y, GAP, GAP);
     }
   private:
     int gx;//grid position x
     int gy;//grid position y
+    U8GLIB_SSD1306_128X64 *scr = NULL;
+    int x = 0;
+    int y = 0;    
     void grid2screen(int xx, int yy, int *cx,  int *cy)
     {
       *cx = GAP * xx;
