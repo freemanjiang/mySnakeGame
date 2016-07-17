@@ -300,6 +300,8 @@ class Snake
     }
     void move(Context* ct)
     {
+      int tempgx;
+      int tempgy;
       //移动身体
       switch (now_face_to)
       {
@@ -338,11 +340,9 @@ class Snake
       { //发生碰撞
         ct->setGameOverState();
       }
-      tempdestgx = x;
-      tempdestgy = y;
 
-      snakebody.add(0, new BodyBox(tempdestgx, tempdestgy));
-      pgm->set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
+      snakebody.add(0, new BodyBox(x, y));
+      pgm->set_snake_body_in_gamemap_place(x, y);//在地图上标记有蛇的body
       if (snakefull == 0 || snakebody.size() >= GRID_WIDTH - 1)
       { //若不是吃到的状态，或蛇身超过某长度，就对尾部box进行删除。（蛇身最大长度限制）
         BodyBox* pTailBox = snakebody.pop();
@@ -419,11 +419,6 @@ class Snake
     }
     int x;//头的位置
     int y;
-
-    int tempgx;
-    int tempgy;
-    int tempdestgx;//目标位置
-    int tempdestgy;
     int now_face_to;
     LinkedList<BodyBox*> snakebody = LinkedList<BodyBox*>();
     GameMap *pgm;
