@@ -222,6 +222,18 @@ class GameMap
         }
       }
     }
+    void set_snake_body_in_gamemap_place(int gx, int gy)
+    {
+      uint8_t place = get_gamemap_place(gx, gy);
+      place |= SNAKE_BODY;
+      set_gamemap_place(gx, gy, place);
+    }
+    void clear_snake_body_in_gamemap_place(int gx, int gy)
+    {
+      uint8_t place = get_gamemap_place(gx, gy);
+      place &= ~SNAKE_BODY;
+      set_gamemap_place(gx, gy, place);
+    }
   private:
     int grid2gmindex(int gx, int gy)
     {
@@ -330,12 +342,12 @@ class Snake
       tempdestgy = y;
 
       snakebody.add(0, new BodyBox(tempdestgx, tempdestgy));
-      set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
+      pgm->set_snake_body_in_gamemap_place(tempdestgx, tempdestgy);//在地图上标记有蛇的body
       if (snakefull == 0 || snakebody.size() >= GRID_WIDTH - 1)
       { //若不是吃到的状态，或蛇身超过某长度，就对尾部box进行删除。（蛇身最大长度限制）
         BodyBox* pTailBox = snakebody.pop();
         pTailBox->get(tempgx, tempgy);
-        clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
+        pgm->clear_snake_body_in_gamemap_place(tempgx, tempgy);//在地图上清除蛇的body标记
         delete(pTailBox);
       }
       else
@@ -390,20 +402,6 @@ class Snake
         return 1;
       }
     }
-
-    void set_snake_body_in_gamemap_place(int gx, int gy)
-    {
-      uint8_t place = pgm->get_gamemap_place(gx, gy);
-      place |= SNAKE_BODY;
-      pgm->set_gamemap_place(gx, gy, place);
-    }
-    void clear_snake_body_in_gamemap_place(int gx, int gy)
-    {
-      uint8_t place = pgm->get_gamemap_place(gx, gy);
-      place &= ~SNAKE_BODY;
-      pgm->set_gamemap_place(gx, gy, place);
-    }
-
     void showBodyBox(BodyBox *bb)
     {
       int gx;
@@ -431,9 +429,6 @@ class Snake
     GameMap *pgm;
     int snakefull;//0 饿，没吃到的状态；1饱，吃到了的状态
 };
-
-
-
 
 class Game
 {
