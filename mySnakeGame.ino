@@ -75,7 +75,7 @@ class Snake;
 class Context
 {
   private:
-    State* pInGameState;
+    State* pInGameState;//需要改
     State* pGameSettingState;
     State* pGameOptionState;
     State* pStageClearState;
@@ -84,7 +84,7 @@ class Context
     State* pCurrentState;
   public:
     Context();
-    void setInGameState();
+    void setInGameState();//这么多个setState 不封闭，需要改
     void setGameSettingState();
     void setGameOptionState();
     void setStageClearState();
